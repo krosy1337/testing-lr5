@@ -2,7 +2,7 @@ name: Main workflow
 on:
   push:
     branches:
-      - main
+      - master
 jobs:
   lab5:
     runs-on: ubuntu-latest
