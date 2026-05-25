@@ -1,2 +1,3 @@
 venv
 chrome-cdp-profile
+__pycache__
