@@ -22,6 +22,7 @@ jobs:
 
       - name: Run scenario 2
         run: |
+          playwright install
           python 2.py
 
       - name: Upload artifacts
