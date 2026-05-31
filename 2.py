@@ -81,6 +81,13 @@ def open_first_video(page):
 
     page.wait_for_url(re.compile(r"https://www\.youtube\.com/watch\?"), timeout=30_000)
     page.locator("#movie_player, video").first.wait_for(state="attached", timeout=30_000)
+    wait_for_video_ready(page)
+
+
+def wait_for_video_ready(page):
+    dismiss_youtube_dialogs(page)
+    page.locator("video").first.wait_for(state="visible", timeout=60_000)
+    page.wait_for_timeout(3_000)
 
 
 def save_artifacts(page):
