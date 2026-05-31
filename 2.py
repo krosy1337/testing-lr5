@@ -86,8 +86,9 @@ def open_first_video(page):
 
 def wait_for_video_ready(page):
     dismiss_youtube_dialogs(page)
-    page.locator("video").first.wait_for(state="visible", timeout=60_000)
-    page.wait_for_timeout(3_000)
+    page.locator("#movie_player").first.wait_for(state="visible", timeout=60_000)
+    click_if_visible(page.locator("button.ytp-large-play-button").first, timeout=3_000)
+    page.wait_for_timeout(10_000)
 
 
 def save_artifacts(page):
