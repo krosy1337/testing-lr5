@@ -1,3 +1,4 @@
+import os
 import re
 from pathlib import Path
 
@@ -5,14 +6,13 @@ from playwright.sync_api import TimeoutError, sync_playwright
 
 
 YOUTUBE_URL = "https://www.youtube.com/"
-SEARCH_QUERY = "видик"
+SEARCH_QUERY = os.getenv("VIDEO_QUERY", "видик")
 ARTIFACTS_DIR = Path("artifacts")
 SCREENSHOT_PATH = ARTIFACTS_DIR / "scenario-2-final.png"
 HTML_PATH = ARTIFACTS_DIR / "scenario-2-final.html"
 
 
-
-def click_if_visible(locator, timeout = 3_000):
+def click_if_visible(locator, timeout=3_000):
     try:
         locator.click(timeout=timeout)
         return True
@@ -36,32 +36,37 @@ def open_youtube(page):
 
 
 def first_video_locator(page):
-    candidate = page.locator("a[href*='/watch?v=']").first
-    try:
-        candidate.wait_for(state="visible", timeout=8_000)
-        return candidate
-    except TimeoutError:
-        pass
+    candidates = (
+        page.locator("ytd-video-renderer a#video-title").first,
+        page.locator("a[href*='/watch?v=']").first,
+    )
+    for candidate in candidates:
+        try:
+            candidate.wait_for(state="visible", timeout=15_000)
+            return candidate
+        except TimeoutError:
+            continue
+    raise TimeoutError("No visible video result was found")
 
 
 def submit_search(page, search_input):
     search_button = page.locator("button[aria-label='Search'], #search-icon-legacy").first
 
     try:
-        with page.expect_navigation(
-            url=re.compile(r"https://www\.youtube\.com/results\?search_query="),
+        search_input.press("Enter")
+        page.wait_for_url(
+            re.compile(r"https://www\.youtube\.com/results\?search_query="),
             wait_until="domcontentloaded",
             timeout=15_000,
-        ):
-            search_input.press("Enter")
+        )
     except TimeoutError:
-        if click_if_visible(search_button, timeout=5_000):
-            page.wait_for_url(
-                re.compile(r"https://www\.youtube\.com/results\?search_query="),
-                wait_until="commit",
-                timeout=15_000,
-            )
-            return
+        if not click_if_visible(search_button, timeout=5_000):
+            raise
+        page.wait_for_url(
+            re.compile(r"https://www\.youtube\.com/results\?search_query="),
+            wait_until="domcontentloaded",
+            timeout=15_000,
+        )
 
 
 def open_first_video(page):
@@ -70,6 +75,7 @@ def open_first_video(page):
     search_input.click()
     search_input.fill(SEARCH_QUERY)
     submit_search(page, search_input)
+
     first_video = first_video_locator(page)
     first_video.click()
 
