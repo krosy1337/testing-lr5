@@ -80,7 +80,7 @@ def open_first_video(page):
     first_video.click()
 
     page.wait_for_url(re.compile(r"https://www\.youtube\.com/watch\?"), timeout=30_000)
-    page.locator("h1.ytd-watch-metadata, h1.title").first.wait_for(state="visible", timeout=30_000)
+    page.locator("#movie_player, video").first.wait_for(state="attached", timeout=30_000)
 
 
 def save_artifacts(page):
